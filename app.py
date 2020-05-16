@@ -33,12 +33,7 @@ def timer(func):
 
 @timer
 def style_orm(src, dest):
-    """
-    测试 ORM包装SQL风格
-    :param src: 源文件路径
-    :param dest: 结果文件路径
-    :return:
-    """
+    """测试 ORM包装SQL风格"""
     # 连接信息
     url_fmt = 'postgresql+psycopg2://{user}:{password}@{host}/{dbname}'
     url = url_fmt.format(**PG_CONN_KWARGS)

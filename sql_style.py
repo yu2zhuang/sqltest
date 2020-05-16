@@ -7,17 +7,14 @@ import pandas as pd
 
 
 def execute(dsn, sql):
-    """ 一次性执行SQL语句 """
+    """一次性执行SQL语句 """
     with psycopg2.connect(dsn) as conn:
         with conn.cursor() as cursor:
-            # 无需commit，with语句执行完成后自动commit
-            # commit() method is automatically called if no exception is raised in the with block.
-            # rollback() method is automatically called if an exception is raised in the with block.
             cursor.execute(sql)
 
 
 def create_table(dsn):
-    """ 执行建表SQL """
+    """执行建表SQL """
     sql = """ 
     drop table if exists cell_traffic_stat;
     create table cell_traffic_stat(
@@ -35,13 +32,7 @@ def create_table(dsn):
 
 
 def chunks(filepath, columns, chunksize=500000):
-    """
-    将大文件分片，读取到StringIO中的生成器函数
-    :param filepath: 文件路径
-    :param columns: 处理的列
-    :param chunksize: 一次性处理行数
-    :return: StringIO对象
-    """
+    """将大文件分片，读取到StringIO中的生成器函数"""
     reader = pd.read_csv(filepath, header=0, chunksize=chunksize, dtype='object')
     for df in reader:
         sio = StringIO()
@@ -52,14 +43,6 @@ def chunks(filepath, columns, chunksize=500000):
 
 
 def copy2db(sio, dsn, tablename, columns):
-    """
-    将StringIO对象数据写入数据表
-    :param sio: StringIO对象
-    :param dsn: 数据库链接信息dsn
-    :param tablename: 表名
-    :param columns: 选取的列
-    :return: None
-    """
     copy_sql = "copy {} ({}) from STDIN WITH DELIMITER AS ',' CSV".format(tablename, ','.join(columns))
     conn = psycopg2.connect(dsn)
     with conn:
@@ -74,9 +57,7 @@ def copy2db(sio, dsn, tablename, columns):
 
 
 def to_sql(filepath, dsn, tablename, columns):
-    """
-    控制入库功能
-    """
+    """控制入库功能"""
     for batch in chunks(filepath, columns):
         copy2db(batch, dsn, tablename, columns)
 
@@ -95,14 +76,8 @@ def update(dsn):
 
 
 def to_csv(dsn, tablename, output):
-    """
-    没有使用pandas的read_sql功能，而是使用普通的fetchall方法，
-    自己合成dataframe对象，生成结果文件。
-    :param dsn: 数据库连接信息
-    :param tablename: 需要导出数据的数据表
-    :param output: 输出文件路径
-    :return: None
-    """
+    """没有使用pandas的read_sql功能，而是使用普通的fetchall方法，
+    自己合成dataframe对象，生成结果文件。"""
     sql = """select * from {}""".format(tablename)
     with psycopg2.connect(dsn) as conn:
         cur = conn.cursor()
